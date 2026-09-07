@@ -45,8 +45,12 @@ def download_video(req: DownloadRequest):
         'outtmpl': outtmpl,
         'noplaylist': not req.is_playlist,
         'merge_output_format': 'mp4',
-        'overwrites': True,           # Overwrites existing files instead of skipping
-        'windowsfilenames': True,     # Sanitizes special characters like $ for Windows Explorer
+        'overwrites': True,
+      'windowsfilenames': True,
+    'limit_rate': '5M',           # Prevents college LAN from detecting and dropping fast downloads
+        'socket_timeout': 60,         # Wait 60 seconds before assuming the college network dropped you
+        'retries': 30,                # Try reconnecting 30 times if the connection drops
+        'fragment_retries': 30,       # Try downloading broken chunks 30 times
         'quiet': False
     }
 
