@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Downloader GUI</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #f4f4f9; display: flex; justify-content: center; padding: 50px; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h2 { margin-top: 0; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #999; cursor: not-allowed; }
+        #status { margin-top: 15px; font-size: 14px; text-align: center; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Download Media</h2>
+    
+    <div class="form-group">
+        <label>Video or Playlist URL</label>
+        <input type="text" id="url" placeholder="https://youtu.be/..." required>
+    </div>
+
+    <div class="form-group checkbox-group">
+        <input type="checkbox" id="is_playlist">
+        <label for="is_playlist" style="margin-bottom: 0;">Download entire playlist</label>
+    </div>
+
+    <div class="form-group">
+        <label>Video Quality</label>
+        <select id="quality">
+            <option value="best">Best Available</option>
+            <option value="2160">4K (2160p)</option>
+            <option value="1080">1080p</option>
+            <option value="720">720p</option>
+            <option value="480">480p</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Custom Download Path (Leave empty for default Downloads)</label>
+        <input type="text" id="download_path" placeholder="e.g., D:/MyVideos or /mnt/d/Videos">
+    </div>
+
+    <button id="downloadBtn" onclick="startDownload()">Start Download</button>
+    
+    <div id="status"></div>
+</div>
+
+<script>
+    async function startDownload() {
+        const url = document.getElementById('url').value;
+        const is_playlist = document.getElementById('is_playlist').checked;
+        const quality = document.getElementById('quality').value;
+        const download_path = document.getElementById('download_path').value;
+        const statusDiv = document.getElementById('status');
+        const btn = document.getElementById('downloadBtn');
+
+        if (!url) {
+            statusDiv.innerHTML = '<span class="error">Please enter a URL.</span>';
+            return;
+        }
+
+        // Update UI
+        btn.disabled = true;
+        btn.innerText = "Downloading... Check terminal for progress.";
+        statusDiv.innerHTML = 'Download started in the background...';
+
+        try {
+            const response = await fetch('http://127.0.0.1:8080/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url, is_playlist, quality, download_path })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                statusDiv.innerHTML = `<span class="success">${result.message}</span>`;
+            } else {
+                statusDiv.innerHTML = `<span class="error">Error: ${result.detail}</span>`;
+            }
+        } catch (error) {
+            statusDiv.innerHTML = `<span class="error">Failed to connect to the backend server. Make sure it's running.</span>`;
+        }
+
+        // Reset UI
+        btn.disabled = false;
+        btn.innerText = "Start Download";
+    }
+</script>
+
+</body>
+</html>
